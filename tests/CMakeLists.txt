@@ -1,13 +1,19 @@
-# Тестовый исполняемый файл
-add_executable(tests test_data_handling.cpp)
-target_link_libraries(tests RecommenderCore)
+# tests/CMakeLists.txt
 
-# Добавляем Catch2
-include(FetchContent)
-FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.4.0
+add_executable(tests
+        test_data_handling.cpp
+        test_similarity.cpp
 )
-FetchContent_MakeAvailable(Catch2)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+
+# Линкуем с ядром и с Catch2::Catch2WithMain
+target_link_libraries(tests
+        PRIVATE
+        RecommenderCore
+        Catch2::Catch2WithMain
+)
+
+# Добавляем include-путь к src, чтобы тесты видели ваши заголовки
+target_include_directories(tests
+        PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+)
