@@ -4,12 +4,12 @@
 #include <stdexcept>
 #include <iostream>
 #include <unordered_map>
-
+#include <ctime>
 
 void CSVLoader::load(const std::string& filename,
-                    std::vector<User>& users,
-                    std::vector<Item>& items) {
-    // 1. Открытие файла с дополнительными проверками
+                     std::vector<User>& users,
+                     std::vector<Item>& items,
+                     bool verbose /*= true*/) {
     std::ifstream file(filename);
     if (!file) {
         throw std::runtime_error("Cannot open file: " + filename);
@@ -17,94 +17,111 @@ void CSVLoader::load(const std::string& filename,
 
     std::string line;
     int lineNum = 0;
+    int badLines = 0;
 
-    // 2. Используем умные указатели для безопасности
     std::unordered_map<int, User*> userMap;
     std::unordered_map<int, Item*> itemMap;
 
     while (std::getline(file, line)) {
         lineNum++;
-        if (line.empty()) continue;  // Пропускаем пустые строки
-        if (lineNum == 1) continue;  // Пропускаем заголовок
 
-        std::istringstream ss(line);
-        std::string token;
-        std::vector<std::string> tokens;
-
-        // 3. Безопасный парсинг строки
-        while (std::getline(ss, token, ',')) {
-            tokens.push_back(token);
+        // 1) Убираем всё после '#'
+        size_t commentPos = line.find('#');
+        if (commentPos != std::string::npos) {
+            line = line.substr(0, commentPos);
         }
 
-        // 4. Проверка минимального количества полей
-        if (tokens.size() < 3) {
-            std::cerr << "Skipping invalid line " << lineNum
-                      << ": only " << tokens.size() << " fields" << std::endl;
+        // 2) Пропуск заголовка и пустых строк
+        if (lineNum == 1 || line.empty()) {
             continue;
         }
 
+        // 3) Токенизация + тримминг пробелов
+        std::istringstream ss(line);
+        std::string token;
+        std::vector<std::string> tokens;
+        while (std::getline(ss, token, ',')) {
+            auto l = token.find_first_not_of(" \t\r\n");
+            auto r = token.find_last_not_of(" \t\r\n");
+            if (l != std::string::npos && r != std::string::npos) {
+                tokens.push_back(token.substr(l, r - l + 1));
+            } else {
+                tokens.push_back("");
+            }
+        }
+
+        // 4) Проверка количества полей
+        if (tokens.size() < 3) {
+            if (verbose) {
+                std::cerr << "Skipping invalid line " << lineNum
+                          << ": only " << tokens.size() << " fields\n";
+            }
+            badLines++;
+            continue;
+        }
+
+        // 5) Конвертация и валидация
         try {
-            // 5. Валидация и преобразование данных
-            int userId = std::stoi(tokens[0]);
-            int itemId = std::stoi(tokens[1]);
+            int userId    = std::stoi(tokens[0]);
+            int itemId    = std::stoi(tokens[1]);
             double rating = std::stod(tokens[2]);
 
-            // 6. Проверка диапазонов
-            if (userId <= 0) throw std::invalid_argument("Invalid user ID: " + tokens[0]);
-            if (itemId <= 0) throw std::invalid_argument("Invalid item ID: " + tokens[1]);
-            if (rating < 0 || rating > 5) throw std::invalid_argument("Rating out of range: " + tokens[2]);
+            if (userId <= 0)
+                throw std::invalid_argument("Invalid user ID: " + tokens[0]);
+            if (itemId <= 0)
+                throw std::invalid_argument("Invalid item ID: " + tokens[1]);
+            if (rating < 0.0 || rating > 5.0)
+                throw std::invalid_argument("Rating out of range: " + tokens[2]);
 
-            // 7. Обработка timestamp (если есть)
-            std::time_t timestamp = std::time(nullptr);
-            if (tokens.size() > 3) {
-                timestamp = std::stol(tokens[3]);
-                if (timestamp < 0) throw std::invalid_argument("Invalid timestamp: " + tokens[3]);
+            std::time_t ts = std::time(nullptr);
+            if (tokens.size() > 3 && !tokens[3].empty()) {
+                ts = std::stol(tokens[3]);
+                if (ts < 0)
+                    throw std::invalid_argument("Invalid timestamp: " + tokens[3]);
             }
 
-            // 8. Поиск или создание пользователя
+            // 6) Создаём или находим пользователя
             if (userMap.find(userId) == userMap.end()) {
                 users.emplace_back(userId);
                 userMap[userId] = &users.back();
-                std::cout << "Created user #" << userId << std::endl;
+                if (verbose) std::cout << "Created user #" << userId << "\n";
             }
 
-            // 9. Поиск или создание товара
+            // 7) Создаём или находим предмет
             if (itemMap.find(itemId) == itemMap.end()) {
                 items.emplace_back(itemId);
                 itemMap[itemId] = &items.back();
-                std::cout << "Created item #" << itemId << std::endl;
+                if (verbose) std::cout << "Created item #" << itemId << "\n";
             }
 
-            // 10. Создание и добавление рейтинга
-            Rating r(userId, itemId, rating, timestamp);
-
-            // 11. Проверка указателей перед использованием
-            if (userMap[userId] == nullptr) {
-                throw std::runtime_error("Null user pointer for ID: " + std::to_string(userId));
-            }
-
-            if (itemMap[itemId] == nullptr) {
-                throw std::runtime_error("Null item pointer for ID: " + std::to_string(itemId));
-            }
-
+            // 8) Добавляем рейтинг
+            Rating r(userId, itemId, rating, ts);
             userMap[userId]->addRating(r);
             itemMap[itemId]->addRating(r);
-
-            std::cout << "Added rating: user=" << userId << ", item=" << itemId
-                      << ", rating=" << rating << std::endl;
-
-        } catch (const std::exception& e) {
-            std::cerr << "Error parsing line " << lineNum << ": " << e.what()
-                      << "\nLine: " << line << std::endl;
+            if (verbose) {
+                std::cout << "Added rating: user=" << userId
+                          << ", item=" << itemId
+                          << ", rating=" << rating << "\n";
+            }
+        }
+        catch (const std::exception& e) {
+            if (verbose) {
+                std::cerr << "Error parsing line " << lineNum
+                          << ": " << e.what()
+                          << "\n  Line content: " << line << "\n";
+            }
+            badLines++;
         }
     }
 
-    // 12. Проверка результатов
-    if (users.empty()) {
-        std::cerr << "Warning: No users loaded!" << std::endl;
+    // Итоговая статистика
+    if (verbose && badLines > 0) {
+        std::cout << "Skipped " << badLines << " invalid lines.\n";
     }
-
-    if (items.empty()) {
-        std::cerr << "Warning: No items loaded!" << std::endl;
+    if (verbose && users.empty()) {
+        std::cerr << "Warning: No users loaded!\n";
+    }
+    if (verbose && items.empty()) {
+        std::cerr << "Warning: No items loaded!\n";
     }
 }

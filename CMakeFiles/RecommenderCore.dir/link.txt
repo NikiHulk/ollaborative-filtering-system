@@ -1,0 +1,2 @@
+"D:\CLion 2025.1.2\bin\mingw\bin\ar.exe" qc libRecommenderCore.a CMakeFiles/RecommenderCore.dir/DataHandler/CSVLoader.obj CMakeFiles/RecommenderCore.dir/Models/Rating.obj CMakeFiles/RecommenderCore.dir/Models/User.obj CMakeFiles/RecommenderCore.dir/Models/Item.obj
+"D:\CLion 2025.1.2\bin\mingw\bin\ranlib.exe" libRecommenderCore.a
