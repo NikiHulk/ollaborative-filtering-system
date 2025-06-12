@@ -1,17 +1,15 @@
-#Основная библиотека системы
+# Библиотека ядра рекомендаций
 add_library(RecommenderCore
         DataHandler/CSVLoader.cpp
-        DataHandler/DataProcessor.cpp
-        Algorithms/SimilarityMetrics.cpp
-        Algorithms/CollaborativeFiltering.cpp
-        Algorithms/HybridRecommender.cpp
+        Models/Rating.cpp
         Models/User.cpp
         Models/Item.cpp
-        Models/Rating.cpp
-        Utils/Evaluation.cpp
-        Utils/TimeAwareness.cpp
 )
 
-#Основное приложение
+target_include_directories(RecommenderCore PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Приложение
 add_executable(recsys main.cpp)
-target_link_libraries(recsys RecommenderCore)
+target_link_libraries(recsys PRIVATE RecommenderCore)

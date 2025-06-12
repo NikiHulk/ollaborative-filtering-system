@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
+#include "Rating.h" // Явное включение
 
 class Item {
 public:
-    Item(int id);
-    
+    explicit Item(int id);
     void addRating(const Rating& rating);
     double getAverageRating() const;
+    int getId() const;
     
 private:
     int id_;

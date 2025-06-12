@@ -1,8 +1,8 @@
-#Тестовое приложение
-add_executable(tests test_main.cpp)
+# Тестовый исполняемый файл
+add_executable(tests test_data_handling.cpp)
 target_link_libraries(tests RecommenderCore)
 
-#Добавление Catch2
+# Добавляем Catch2
 include(FetchContent)
 FetchContent_Declare(
         Catch2
