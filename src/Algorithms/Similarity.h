@@ -1,23 +1,24 @@
 #pragma once
 
+#include "../Models/User.h"
+#include "../Models/Rating.h"
+#include <cmath>
 #include <vector>
-#include <unordered_map>
-#include "User.h"
-#include "Item.h"
+#include <utility>
 
 namespace recsys {
 
-    /// Интерфейс для вычисления метрики сходства между двумя пользователями
+    ///Статические методы для расчёта метрик сходства пользователей.
     class Similarity {
     public:
-        /// Косинусная близость
+        ///Косинусная близость
         static double cosine(const User& u1, const User& u2);
 
-        /// Корреляция Пирсона
+        ///Корреляция Пирсона
         static double pearson(const User& u1, const User& u2);
 
-        /// Jaccard (для бинарных данных, опционально)
+        ///Жаккард(для бинарных данных)
         static double jaccard(const User& u1, const User& u2);
     };
 
-} // namespace recsys
+}

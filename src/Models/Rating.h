@@ -8,5 +8,5 @@ struct Rating {
     std::time_t timestamp;
 
     Rating(int u, int i, double s, std::time_t t = std::time(nullptr));
-    Rating() = default; // Добавляем конструктор по умолчанию
+    Rating() = default;
 };

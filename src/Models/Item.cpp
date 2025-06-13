@@ -1,7 +1,7 @@
 #include "Item.h"
 #include <stdexcept>
 
-Item::Item(int id) : id_(id) {}  // Явная инициализация
+Item::Item(int id) : id_(id) {}
 
 void Item::addRating(const Rating& rating) {
     if (rating.score < 0 || rating.score > 5)
@@ -10,7 +10,7 @@ void Item::addRating(const Rating& rating) {
 }
 
 int Item::getId() const {
-    return id_; // предположим, что у вас есть private член id_
+    return id_;
 }
 
 double Item::getAverageRating() const {

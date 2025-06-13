@@ -24,19 +24,13 @@ void CSVLoader::load(const std::string& filename,
 
     while (std::getline(file, line)) {
         lineNum++;
-
-        // 1) Убираем всё после '#'
         size_t commentPos = line.find('#');
         if (commentPos != std::string::npos) {
             line = line.substr(0, commentPos);
         }
-
-        // 2) Пропуск заголовка и пустых строк
         if (lineNum == 1 || line.empty()) {
             continue;
         }
-
-        // 3) Токенизация + тримминг пробелов
         std::istringstream ss(line);
         std::string token;
         std::vector<std::string> tokens;
@@ -49,8 +43,6 @@ void CSVLoader::load(const std::string& filename,
                 tokens.push_back("");
             }
         }
-
-        // 4) Проверка количества полей
         if (tokens.size() < 3) {
             if (verbose) {
                 std::cerr << "Skipping invalid line " << lineNum
@@ -59,8 +51,6 @@ void CSVLoader::load(const std::string& filename,
             badLines++;
             continue;
         }
-
-        // 5) Конвертация и валидация
         try {
             int userId    = std::stoi(tokens[0]);
             int itemId    = std::stoi(tokens[1]);
@@ -79,22 +69,16 @@ void CSVLoader::load(const std::string& filename,
                 if (ts < 0)
                     throw std::invalid_argument("Invalid timestamp: " + tokens[3]);
             }
-
-            // 6) Создаём или находим пользователя
             if (userMap.find(userId) == userMap.end()) {
                 users.emplace_back(userId);
                 userMap[userId] = &users.back();
                 if (verbose) std::cout << "Created user #" << userId << "\n";
             }
-
-            // 7) Создаём или находим предмет
             if (itemMap.find(itemId) == itemMap.end()) {
                 items.emplace_back(itemId);
                 itemMap[itemId] = &items.back();
                 if (verbose) std::cout << "Created item #" << itemId << "\n";
             }
-
-            // 8) Добавляем рейтинг
             Rating r(userId, itemId, rating, ts);
             userMap[userId]->addRating(r);
             itemMap[itemId]->addRating(r);
@@ -113,8 +97,6 @@ void CSVLoader::load(const std::string& filename,
             badLines++;
         }
     }
-
-    // Итоговая статистика
     if (verbose && badLines > 0) {
         std::cout << "Skipped " << badLines << " invalid lines.\n";
     }

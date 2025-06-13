@@ -7,7 +7,6 @@
 
 class CSVLoader {
 public:
-    // Обновлённая сигнатура: в конце добавлен параметр verbose с дефолтным значением
     static void load(const std::string& filename,
                      std::vector<User>& users,
                      std::vector<Item>& items,

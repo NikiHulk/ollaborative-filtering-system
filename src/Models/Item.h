@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Rating.h" // Явное включение
+#include "Rating.h"
 
 class Item {
 public:

@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Объявляем переменную dataPath
+    //Объявляем DataPAth
     fs::path dataPath(argv[1]);
 
     std::cout << "Program started, loading data from: "
@@ -28,27 +28,19 @@ int main(int argc, char* argv[]) {
     std::vector<Item> items;
 
     try {
-        CSVLoader::load(dataPath.string(), users, items);
+        CSVLoader::load(dataPath.string(), users, items, /*verbose=*/false);
     } catch (const std::exception& e) {
         std::cerr << "Exception while loading data: "
                   << e.what() << std::endl;
         return 1;
     }
-
-    // Здесь мы уже знаем, сколько пользователей и предметов загрузилось
     std::cout << "Loaded " << users.size() << " users and "
               << items.size() << " items." << std::endl;
-
-    // -------------------------------
-    // Вот тут вставляем getId()
-    // -------------------------------
     if (!users.empty()) {
-        // Выведем ID первого пользователя, используя геттер getId()
         std::cout << "First user ID: "
                   << users[0].getId()
                   << std::endl;
     }
-    // -------------------------------
 
     std::cout << "Program finished successfully" << std::endl;
     return 0;

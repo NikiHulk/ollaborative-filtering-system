@@ -1,15 +1,15 @@
 #include "User.h"
 #include <stdexcept>
 
-User::User(int id) : id_(id) {}  // Явная инициализация
+User::User(int id) : id_(id) {}
 
 void User::addRating(const Rating& rating) {
-    // Проверка соответствия ID пользователя
+    //Проверка ID юзера
     if (rating.userId != id_) {
         throw std::invalid_argument("Rating user ID does not match this user");
     }
 
-    // Проверка корректности itemId
+    //Проверка ItemID
     if (rating.itemId <= 0) {
         throw std::invalid_argument("Invalid item ID in rating");
     }

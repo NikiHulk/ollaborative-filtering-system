@@ -1,10 +1,10 @@
-# src/CMakeLists.txt
-
 add_library(RecommenderCore
         Models/Rating.cpp
         Models/User.cpp
         Models/Item.cpp
         DataHandler/CSVLoader.cpp
+        Algorithms/Similarity.cpp
+        Algorithms/Predictor.cpp
 )
 
 target_include_directories(RecommenderCore
