@@ -4,10 +4,20 @@
 
 namespace recsys {
 
-    double Predictor::predict(int userId, int itemId,
+    double Predictor::predict(int userId,
+                              int itemId,
                               const std::vector<User>& users,
-                              int k) {
-        //Находим указатель целевого юзера
+                              int k,
+                              Metric metric) {
+        auto getSim = [&](const User& a, const User& b) {
+            switch (metric) {
+                case Metric::Cosine:  return Similarity::cosine(a, b);
+                case Metric::Pearson: return Similarity::pearson(a, b);
+                case Metric::Jaccard: return Similarity::jaccard(a, b);
+            }
+            return 0.0;
+        };
+
         const User* target = nullptr;
         for (auto const& u : users) {
             if (u.getId() == userId) {
@@ -18,36 +28,26 @@ namespace recsys {
         if (!target) {
             throw std::runtime_error("User not found");
         }
-
-        // Собираем сходства с помощью вектора
         std::vector<std::pair<double, const User*>> sims;
+        sims.reserve(users.size() - 1);
         for (auto const& u : users) {
             if (u.getId() == userId) continue;
-            double s = Similarity::cosine(*target, u);
+            double s = getSim(*target, u);
             sims.emplace_back(s, &u);
         }
-
-        //Сорт по убыванию
         std::sort(sims.begin(), sims.end(),
-                  [](auto& a, auto& b){ return a.first > b.first; });
-
-        //Берем до k нужных соседей
+                  [](auto &a, auto &b) { return a.first > b.first; });
         double num = 0.0, den = 0.0;
-        int count = 0;
-        for (auto const& [sim, userPtr] : sims) {
-            if (sim <= 0) break;
-            double r = userPtr->getRatingForItem(itemId);
-            //если сосед не поставил оценку, скип
-            if (r < 0) continue;
+        int taken = 0;
+        for (auto const& [sim, u_ptr] : sims) {
+            if (sim <= 0.0) break;
+            double r = u_ptr->getRatingForItem(itemId);
+            if (r <= 0.0) continue;
             num += sim * r;
             den += sim;
-            if (++count >= k) break;
+            if (++taken >= k) break;
         }
-
-        if (den == 0) {
-            return 0.0;
-        }
-        return num / den;
+        return den > 0.0 ? num / den : 0.0;
     }
 
 }

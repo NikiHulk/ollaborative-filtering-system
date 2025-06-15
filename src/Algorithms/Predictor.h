@@ -1,22 +1,29 @@
 #pragma once
 
 #include "../Models/User.h"
-#include "../Models/Item.h"
 #include "Similarity.h"
 #include <vector>
 
 namespace recsys {
 
-    ///Класс для предсказания оценок на основе k ближайших юзеров.
+    /// Предсказание оценок на основе k-NN.
     class Predictor {
     public:
-        ///Предсказать оценку для userId на itemId,
-        ///беря в расчёт k самых похожих пользователей.
-        ///users — список всех загруженных пользователей,
-        ///items — список всех загруженных товаров.
-        static double predict(int userId, int itemId,
+        /// Доступные метрики сходства
+        enum class Metric {
+            Cosine,
+            Pearson,
+            Jaccard
+        };
+
+        /// Предсказать оценку для userId на itemId,
+        /// беря в расчёт k самых похожих пользователей и метрику metric.
+        /// Вернёт 0.0, если не удалось предсказать (нет соседей или все веса ≤ 0).
+        static double predict(int userId,
+                              int itemId,
                               const std::vector<User>& users,
-                              int k = 5);
+                              int k = 5,
+                              Metric metric = Metric::Cosine);
     };
 
-}
+} // namespace recsys

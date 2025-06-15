@@ -34,6 +34,7 @@ namespace recsys {
         }
         int n = common.size();
         if (n == 0) return 0.0;
+        if (n == 1) return 1.0;
 
         double sum1=0, sum2=0, sum1Sq=0, sum2Sq=0, pSum=0;
         for (auto& [x,y] : common) {

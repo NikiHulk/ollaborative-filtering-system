@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include <catch2/catch_amalgamated.hpp>
 using namespace Catch;
 
@@ -10,6 +9,7 @@ using namespace Catch;
 #include <Models/Item.h>
 
 TEST_CASE("CSVLoader loads data correctly") {
+
     std::vector<User> users;
     std::vector<Item> items;
 
