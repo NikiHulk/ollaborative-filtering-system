@@ -2,6 +2,14 @@
 #include <cmath>
 
 namespace recsys {
+    /**
+     * @brief Вычисляет среднюю абсолютную ошибку (MAE) между предсказанными и фактическими оценками
+     * 
+     * @param users Вектор пользователей, содержащий фактические оценки
+     * @param predicted Словарь предсказанных оценок в формате: 
+     *                  { user_id: { item_id: predicted_score } }
+     * @return double Значение MAE. Возвращает 0.0 если нет совпадающих оценок.
+     */
 
     double Evaluation::computeMAE(const std::vector<User>& users,
                                    const std::unordered_map<int, std::unordered_map<int, double>>& predicted) {
@@ -23,6 +31,14 @@ namespace recsys {
         }
         return (count > 0) ? totalError / count : 0.0;
     }
+    /**
+     * @brief Вычисляет среднеквадратичную ошибку (RMSE) между предсказанными и фактическими оценками
+     * 
+     * @param users Вектор пользователей, содержащий фактические оценки
+     * @param predicted Словарь предсказанных оценок в формате: 
+     *                 { user_id: { item_id: predicted_score } }
+     * @return double Значение RMSE. Возвращает 0.0 если нет совпадающих оценок.
+     */
 
     double Evaluation::computeRMSE(const std::vector<User>& users,
                                    const std::unordered_map<int, std::unordered_map<int, double>>& predicted) {
