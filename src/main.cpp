@@ -1,3 +1,12 @@
+/**
+* @file main.cpp
+ * @brief Точка входа в программу: запуск системы коллаборативной фильтрации.
+ *
+ * Загружает пользователей и оценки из CSV-файла, вычисляет рекомендации
+ * на основе user-based, item-based и гибридных алгоритмов. Также оценивает
+ * точность предсказаний (MAE и RMSE).
+ */
+
 #include "Algorithms/Recommender.h"
 #include "Algorithms/Evaluation.h"
 #include "DataHandler/CSVLoader.h"
@@ -12,6 +21,13 @@
 
 using namespace recsys;
 
+/**
+ * @brief Выводит рекомендации на экран.
+ *
+ * @param title Заголовок для печати (например, "Top-N (user-based):").
+ * @param recs Вектор пар <itemId, predictedScore>.
+ */
+
 void printRecommendations(const std::string& title, const std::vector<std::pair<int, double>>& recs) {
     std::cout << title << "\n";
     if (recs.empty()) {
@@ -23,6 +39,17 @@ void printRecommendations(const std::string& title, const std::vector<std::pair<
         }
     }
 }
+
+/**
+ * @brief Основная точка входа в программу.
+ *
+ * Загружает данные из CSV, выбирает первого пользователя в списке и вычисляет
+ * для него рекомендации разными методами.
+ *
+ * @param argc Количество аргументов командной строки.
+ * @param argv Аргументы командной строки. argv[1] — путь к CSV-файлу.
+ * @return Код завершения: 0 — успех, 1 — ошибка.
+ */
 
 int main(int argc, char* argv[]) {
 #ifdef _WIN32

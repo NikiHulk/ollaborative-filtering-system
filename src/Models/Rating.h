@@ -1,12 +1,31 @@
+/**
+* @file Rating.h
+ * @brief Заголовочный файл для класса Rating — оценка, выставленная пользователем товару.
+ */
+
 #pragma once
+
 #include <ctime>
 
-struct Rating {
-    int userId;
-    int itemId;
-    double score;
-    std::time_t timestamp;
+/**
+ * @class Rating
+ * @brief Представляет оценку, выставленную пользователем товару.
+ *
+ * Содержит идентификаторы пользователя и товара, значение оценки и временную метку.
+ */
+class Rating {
+public:
+    /**
+     * @brief Конструктор оценки.
+     * @param u ID пользователя, который оставил оценку.
+     * @param i ID товара, к которому относится оценка.
+     * @param s Числовая оценка (обычно от 0 до 5).
+     * @param t Временная метка (timestamp), когда была выставлена оценка.
+     */
+    Rating(int u, int i, double s, std::time_t t);
 
-    Rating(int u, int i, double s, std::time_t t = std::time(nullptr));
-    Rating() = default;
+    int userId;     ///< ID пользователя
+    int itemId;     ///< ID товара
+    double score;   ///< Значение оценки (например, от 0 до 5)
+    std::time_t timestamp; ///< Временная метка, когда была выставлена оценка
 };

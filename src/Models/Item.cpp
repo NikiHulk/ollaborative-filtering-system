@@ -1,28 +1,53 @@
-#include "Item.h"
-#include <stdexcept>
+/**
+* @file Item.h
+ * @brief Класс модели Item (товар), содержащий список оценок от пользователей.
+ */
 
-Item::Item(int id) : id_(id) {}
+#pragma once
 
-void Item::addRating(const Rating& rating) {
-    if (rating.score < 0 || rating.score > 5)
-        throw std::invalid_argument("Rating must be 0-5");
-    ratings_.push_back(rating);
-}
+#include <vector>
+#include "Rating.h"
 
-int Item::getId() const {
-    return id_;
-}
+/**
+ * @class Item
+ * @brief Представляет товар, который может быть оценён пользователями.
+ *
+ * Хранит идентификатор и список оценок от разных пользователей.
+ */
+class Item {
+public:
+    /**
+     * @brief Конструктор по идентификатору.
+     * @param id Уникальный идентификатор товара.
+     */
+    Item(int id);
 
-int Item::getRatingCount() const {
-    return ratings_.size();
-}
+    /**
+     * @brief Добавляет новую оценку к товару.
+     * @param rating Объект оценки типа Rating.
+     * @throw std::invalid_argument Если значение оценки вне диапазона [0; 5].
+     */
+    void addRating(const Rating& rating);
 
-double Item::getAverageRating() const {
-    if (ratings_.empty()) return 0.0;
+    /**
+     * @brief Получает идентификатор товара.
+     * @return Целочисленный ID.
+     */
+    int getId() const;
 
-    double sum = 0.0;
-    for (const auto& rating : ratings_) {
-        sum += rating.score;
-    }
-    return sum / ratings_.size();
-}
+    /**
+     * @brief Получает количество оценок для этого товара.
+     * @return Количество оценок (размер вектора).
+     */
+    int getRatingCount() const;
+
+    /**
+     * @brief Возвращает среднюю оценку по всем полученным рейтингам.
+     * @return Среднее арифметическое значений оценок. 0.0 если оценок нет.
+     */
+    double getAverageRating() const;
+
+private:
+    int id_;  ///< Идентификатор товара.
+    std::vector<Rating> ratings_;  ///< Список оценок, оставленных пользователями.
+};

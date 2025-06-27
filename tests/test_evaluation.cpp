@@ -14,7 +14,7 @@ TEST_CASE("Evaluation metrics compute correctly") {
 
     // user 1: predicted=4.5, actual=5.0
     User u1(1);
-    u1.addRating(Rating(1, 101, 5.0));
+    u1.addRating(Rating(1, 101, 5.0, 123456789));
     users.push_back(u1);
 
     std::unordered_map<int, std::unordered_map<int, double>> predictions = {
