@@ -24,6 +24,8 @@ namespace recsys {
 
         static double manhattan(const User& u1, const User& u2);
 
+        static double decayWeight(long timestamp, long now, double lambda = 0.01);
+
     };
 
 }
