@@ -27,13 +27,19 @@ namespace recsys {
         for (const auto& item : items) {
             int itemId = item.getId();
             if (user->getRatingForItem(itemId) > 0.0) continue;
+
             double predicted = Predictor::predict(userId, itemId, users, k, metric);
-            if (predicted > 0.0)
-                predictions.emplace_back(itemId, predicted);
+            predictions.emplace_back(itemId, predicted);
         }
 
         std::sort(predictions.begin(), predictions.end(),
                   [](auto& a, auto& b) { return a.second > b.second; });
+
+        predictions.erase(
+            std::remove_if(predictions.begin(), predictions.end(),
+                           [](auto& p) { return p.second <= 0.0; }),
+            predictions.end()
+        );
 
         if (predictions.size() > N)
             predictions.resize(N);
@@ -83,14 +89,19 @@ namespace recsys {
 
             double userPred = Predictor::predict(userId, itemId, users, k, metric);
             double itemPred = Predictor::predictItemBased(userId, itemId, users, items, k);
-
             double combined = alpha * userPred + (1.0 - alpha) * itemPred;
-            if (combined > 0.0)
-                predictions.emplace_back(itemId, combined);
+
+            predictions.emplace_back(itemId, combined);
         }
 
         std::sort(predictions.begin(), predictions.end(),
                   [](auto& a, auto& b) { return a.second > b.second; });
+
+        predictions.erase(
+            std::remove_if(predictions.begin(), predictions.end(),
+                           [](auto& p) { return p.second <= 0.0; }),
+            predictions.end()
+        );
 
         if (predictions.size() > N)
             predictions.resize(N);
@@ -120,12 +131,17 @@ namespace recsys {
             if (user->getRatingForItem(itemId) > 0.0) continue;
 
             double predicted = Predictor::predictItemBased(userId, itemId, users, items);
-            if (predicted > 0.0)
-                predictions.emplace_back(itemId, predicted);
+            predictions.emplace_back(itemId, predicted);
         }
 
         std::sort(predictions.begin(), predictions.end(),
                   [](auto& a, auto& b) { return a.second > b.second; });
+
+        predictions.erase(
+            std::remove_if(predictions.begin(), predictions.end(),
+                           [](auto& p) { return p.second <= 0.0; }),
+            predictions.end()
+        );
 
         if (predictions.size() > N)
             predictions.resize(N);

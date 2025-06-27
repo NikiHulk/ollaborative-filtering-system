@@ -42,23 +42,28 @@ void CSVLoader::load(const std::string& filename,
             int userId    = std::stoi(tokens[0]);
             int itemId    = std::stoi(tokens[1]);
             double rating = std::stod(tokens[2]);
-            std::time_t ts = std::time(nullptr);
-            if (tokens.size() > 3 && !tokens[3].empty()) {
-                ts = std::stol(tokens[3]);
+
+            long timestamp = std::time(nullptr); // по умолчанию — текущее время
+            if (tokens.size() >= 4 && !tokens[3].empty()) {
+                timestamp = std::stol(tokens[3]); // если есть колонка времени
             }
+
             if (!userIndex.count(userId)) {
                 users.emplace_back(userId);
                 userIndex[userId] = users.size() - 1;
                 if (verbose) std::cout << "Created user #" << userId << "\n";
             }
+
             if (!itemIndex.count(itemId)) {
                 items.emplace_back(itemId);
                 itemIndex[itemId] = items.size() - 1;
                 if (verbose) std::cout << "Created item #" << itemId << "\n";
             }
+
             auto& u = users[userIndex[userId]];
             auto& it = items[itemIndex[itemId]];
-            Rating r(userId, itemId, rating, ts);
+
+            Rating r(userId, itemId, rating, timestamp); // используем переменную timestamp
             u.addRating(r);
             it.addRating(r);
 

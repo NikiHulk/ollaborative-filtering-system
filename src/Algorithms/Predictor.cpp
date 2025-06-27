@@ -65,7 +65,8 @@ namespace recsys {
             double r = it->second.score;
             long ts = it->second.timestamp;
 
-            double w = Similarity::decayWeight(ts, now);
+            //double w = Similarity::decayWeight(ts, now);
+            double w = 1.0; // на время тестов
             num += sim * r * w;
             den += sim * w;
 
@@ -103,7 +104,8 @@ namespace recsys {
 
             double sim = Similarity::adjustedCosine(users, itemId, otherItemId);
             if (sim > 0.0) {
-                double w = Similarity::decayWeight(r.timestamp, now);
+                //double w = Similarity::decayWeight(r.timestamp, now);
+                double w = 1.0;
                 sims.emplace_back(sim, r.score * w);
             }
         }
