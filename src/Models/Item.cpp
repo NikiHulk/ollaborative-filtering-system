@@ -13,6 +13,10 @@ int Item::getId() const {
     return id_;
 }
 
+int Item::getRatingCount() const {
+    return ratings_.size();
+}
+
 double Item::getAverageRating() const {
     if (ratings_.empty()) return 0.0;
 

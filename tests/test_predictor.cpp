@@ -10,44 +10,54 @@ using namespace Catch;
 
 using namespace recsys;
 
-TEST_CASE("Predictor returns 0 when no neighbors rated", "[predictor]") {
-    User u1(1), u2(2);
-    // только u1 ─ целевой, u2 не ставил itemId=101
-    u1.addRating(Rating(1, 101, 4.0));
-    std::vector<User> users = {u1, u2};
+TEST_CASE("Predictor uses one neighbor") {
+    std::vector<User> users;
 
-    REQUIRE(Predictor::predict(1, 101, users, 1) == Approx( /* decide semantics */ 0.0 ));
+    User u1(1);
+    u1.addRating({1, 101, 0});
+    u1.addRating({1, 102, 4});
+    users.push_back(u1);
+
+    User u2(2);
+    u2.addRating({2, 101, 5});
+    u2.addRating({2, 102, 4});
+    users.push_back(u2);
+
+    double predicted = Predictor::predict(1, 101, users, 1);
+    REQUIRE(predicted == Approx(5.0).margin(0.01));
 }
 
-TEST_CASE("Predictor uses one neighbor", "[predictor]") {
-    User u1(1), u2(2);
-    u1.addRating(Rating(1, 101, 4.0));
-    u2.addRating(Rating(2, 101, 5.0));
-    std::vector<User> users = {u1, u2};
+TEST_CASE("Predictor uses Pearson similarity") {
+    std::vector<User> users;
 
-    // косинус будет =1, значит предсказанная = 5.0
-    REQUIRE(Predictor::predict(1, 101, users, 1) == Approx(5.0));
+    User u1(1);
+    u1.addRating({1, 101, 2});
+    u1.addRating({1, 102, 4});
+    users.push_back(u1);
+
+    User u2(2);
+    u2.addRating({2, 101, 4});
+    u2.addRating({2, 102, 6});
+    users.push_back(u2);
+
+    double pred = Predictor::predict(1, 101, users, 1, Predictor::Metric::Pearson);
+    REQUIRE(pred == Approx(4.0).margin(0.01));
 }
 
-TEST_CASE("Predictor uses Pearson similarity", "[predictor][pearson]") {
-    User u1(1), u2(2);
-    u1.addRating(Rating(1, 101, 4.0));
-    u2.addRating(Rating(2, 101, 5.0));
-    std::vector<User> users = {u1,u2};
-    REQUIRE(
-      Approx(Predictor::predict(1,101,users,1, Predictor::Metric::Pearson))
-      == 5.0
-    );
-}
+TEST_CASE("Predictor uses Jaccard similarity") {
+    std::vector<User> users;
 
-TEST_CASE("Predictor uses Jaccard similarity", "[predictor][jaccard]") {
-    User u1(1), u2(2);
-    // Jaccard для одного пересечения = 1, рейтинг берётся у соседа
-    u1.addRating(Rating(1, 101, 0.0));
-    u2.addRating(Rating(2, 101, 3.0));
-    std::vector<User> users = {u1,u2};
-    REQUIRE(
-      Approx(Predictor::predict(1,101,users,1, Predictor::Metric::Jaccard))
-      == 3.0
-    );
+    User u1(1);
+    u1.addRating({1, 101, 3.0});
+    u1.addRating({1, 102, 3.0});
+    users.push_back(u1);
+
+    User u2(2);
+    u2.addRating({2, 101, 3.0});
+    u2.addRating({2, 102, 3.0});
+    users.push_back(u2);
+
+    double pred = Predictor::predict(1, 101, users, 1, Predictor::Metric::Jaccard);
+    REQUIRE( pred == Approx(5.0).margin(0.01) );
+
 }

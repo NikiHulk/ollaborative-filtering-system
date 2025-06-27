@@ -8,6 +8,8 @@ public:
     void addRating(const Rating& rating);
     double getAverageRating() const;
     int getId() const;
+    int getRatingCount() const;
+
     
 private:
     int id_;

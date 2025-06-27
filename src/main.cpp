@@ -1,47 +1,128 @@
-#include <iostream>
-#include <filesystem>
+#include "Algorithms/Recommender.h"
+#include "Algorithms/Evaluation.h"
 #include "DataHandler/CSVLoader.h"
-#include "Models/User.h"
-#include "Models/Item.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
 
-namespace fs = std::filesystem;
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+using namespace recsys;
+
+void printRecommendations(const std::string& title, const std::vector<std::pair<int, double>>& recs) {
+    std::cout << title << "\n";
+    if (recs.empty()) {
+        std::cout << "  Нет доступных рекомендаций\n";
+    } else {
+        for (const auto& [itemId, score] : recs) {
+            std::cout << "  Товар #" << itemId << ", предсказанная оценка = "
+                      << std::fixed << std::setprecision(3) << score << "\n";
+        }
+    }
+}
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <data_path>" << std::endl;
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+#endif
+
+    std::cout << "==========================================\n";
+    std::cout << "     Collaborative Filtering System\n";
+    std::cout << "     Система коллаборативных рекомендаций\n";
+    std::cout << "==========================================\n\n";
+
+    if (argc < 2) {
+        std::cerr << "[ОШИБКА] Использование: recsys <файл_данных.csv>\n";
         return 1;
     }
 
-    //Объявляем DataPAth
-    fs::path dataPath(argv[1]);
-
-    std::cout << "Program started, loading data from: "
-              << fs::absolute(dataPath) << std::endl;
-
-    if (!fs::exists(dataPath)) {
-        std::cerr << "Error: Data file not found at "
-                  << fs::absolute(dataPath) << std::endl;
-        return 1;
-    }
+    std::string filename = argv[1];
+    std::cout << "[ЗАГРУЗКА] Чтение данных из: " << filename << "\n";
 
     std::vector<User> users;
     std::vector<Item> items;
+    CSVLoader::load(filename, users, items, true);
 
-    try {
-        CSVLoader::load(dataPath.string(), users, items, /*verbose=*/false);
-    } catch (const std::exception& e) {
-        std::cerr << "Exception while loading data: "
-                  << e.what() << std::endl;
+    std::cout << "[УСПЕХ] Загружено " << users.size() << " пользователей, " << items.size() << " товаров\n";
+
+    if (users.empty()) {
+        std::cerr << "[ОШИБКА] Нет пользователей\n";
         return 1;
     }
-    std::cout << "Loaded " << users.size() << " users and "
-              << items.size() << " items." << std::endl;
-    if (!users.empty()) {
-        std::cout << "First user ID: "
-                  << users[0].getId()
-                  << std::endl;
+
+    int targetUserId = users.front().getId();
+    std::cout << "\n[ЦЕЛЬ] Рекомендации для пользователя ID: #" << targetUserId << "\n";
+
+    const User* user = nullptr;
+    for (const auto& u : users) {
+        if (u.getId() == targetUserId) {
+            user = &u;
+            break;
+        }
     }
 
-    std::cout << "Program finished successfully" << std::endl;
+    if (!user) {
+        std::cerr << "[ОШИБКА] Пользователь не найден!\n";
+        return 1;
+    }
+
+    if (user->getRatings().empty()) {
+        std::cout << "[COLD START] У пользователя нет оценок. Популярные товары:\n";
+        auto popular = Recommender::topPopularItems(items, 3);
+        for (auto& [itemId, count] : popular) {
+            std::cout << "  Товар #" << itemId << " (оценок: " << count << ")\n";
+        }
+    } else {
+        // --- USER-BASED ---
+        auto userRecs = Recommender::recommendTopN(targetUserId, users, items, 3);
+        std::cout << "\n[USER-BASED] Рекомендации на основе схожих пользователей:\n";
+        printRecommendations("Top-N (user-based):", userRecs);
+
+        std::unordered_map<int, std::unordered_map<int, double>> predictedUser;
+        for (const auto& [itemId, rating] : user->getRatings()) {
+            double pred = Predictor::predict(targetUserId, itemId, users, 2);
+            predictedUser[targetUserId][itemId] = pred;
+        }
+
+        std::cout << "\n=== Оценка user-based ===\n";
+        std::cout << "MAE  = " << Evaluation::computeMAE(users, predictedUser) << "\n";
+        std::cout << "RMSE = " << Evaluation::computeRMSE(users, predictedUser) << "\n";
+
+        // --- ITEM-BASED ---
+        auto itemRecs = Recommender::recommendItemBasedTopN(targetUserId, users, items, 3);
+        std::cout << "\n[ITEM-BASED] Рекомендации на основе похожих товаров:\n";
+        printRecommendations("Top-N (item-based):", itemRecs);
+
+        std::unordered_map<int, std::unordered_map<int, double>> predictedItem;
+        for (const auto& [itemId, rating] : user->getRatings()) {
+            double pred = Predictor::predictItemBased(targetUserId, itemId, users, items, 2);
+            predictedItem[targetUserId][itemId] = pred;
+        }
+
+        std::cout << "\n=== Оценка item-based ===\n";
+        std::cout << "MAE  = " << Evaluation::computeMAE(users, predictedItem) << "\n";
+        std::cout << "RMSE = " << Evaluation::computeRMSE(users, predictedItem) << "\n";
+
+        // --- HYBRID ---
+        auto hybridRecs = Recommender::recommendHybrid(targetUserId, users, items, 3, 2, Predictor::Metric::Cosine, 0.5);
+        std::cout << "\n[HYBRID] Гибридная рекомендация (50% user + 50% item):\n";
+        printRecommendations("Top-N (hybrid):", hybridRecs);
+
+        std::unordered_map<int, std::unordered_map<int, double>> predictedHybrid;
+        for (const auto& [itemId, rating] : user->getRatings()) {
+            double userPred = Predictor::predict(targetUserId, itemId, users, 2);
+            double itemPred = Predictor::predictItemBased(targetUserId, itemId, users, items, 2);
+            predictedHybrid[targetUserId][itemId] = 0.5 * userPred + 0.5 * itemPred;
+        }
+
+        std::cout << "\n=== Оценка hybrid ===\n";
+        std::cout << "MAE  = " << Evaluation::computeMAE(users, predictedHybrid) << "\n";
+        std::cout << "RMSE = " << Evaluation::computeRMSE(users, predictedHybrid) << "\n";
+    }
+
+    std::cout << "\n[ГОТОВО] Программа завершена успешно.\n";
     return 0;
 }

@@ -3,6 +3,9 @@ add_executable(tests
         test_data_handling.cpp
         test_similarity.cpp
         test_predictor.cpp
+        test_recommender.cpp
+        test_evaluation.cpp
+        test_hybrid.cpp
         include/catch2/catch_amalgamated.cpp
 )
 

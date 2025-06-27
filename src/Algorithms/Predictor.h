@@ -2,6 +2,7 @@
 
 #include "../Models/User.h"
 #include "Similarity.h"
+#include "../Models/Item.h"
 #include <vector>
 
 namespace recsys {
@@ -24,6 +25,11 @@ namespace recsys {
                               const std::vector<User>& users,
                               int k = 5,
                               Metric metric = Metric::Cosine);
+
+        static double predictItemBased(int userId, int itemId,
+                               const std::vector<User>& users,
+                               const std::vector<Item>& items,
+                               int k = 5);
     };
 
 } // namespace recsys

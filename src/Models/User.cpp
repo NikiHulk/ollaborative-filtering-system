@@ -24,3 +24,13 @@ double User::getRatingForItem(int itemId) const {
 const std::unordered_map<int, Rating>& User::getRatings() const {
     return ratings_;
 }
+
+double User::getAverageRating() const {
+    if (ratings_.empty()) return 0.0;
+
+    double sum = 0.0;
+    for (const auto& [itemId, r] : ratings_) {
+        sum += r.score;
+    }
+    return sum / ratings_.size();
+}

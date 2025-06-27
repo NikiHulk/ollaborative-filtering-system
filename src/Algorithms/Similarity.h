@@ -19,6 +19,11 @@ namespace recsys {
 
         ///Жаккард(для бинарных данных)
         static double jaccard(const User& u1, const User& u2);
+
+        static double adjustedCosine(const std::vector<User>& users, int itemId1, int itemId2);
+
+        static double manhattan(const User& u1, const User& u2);
+
     };
 
 }

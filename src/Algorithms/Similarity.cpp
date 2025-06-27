@@ -1,4 +1,6 @@
 #include "Algorithms/Similarity.h"
+#include "../Models/User.h"
+
 
 namespace recsys {
 
@@ -59,5 +61,47 @@ namespace recsys {
         int uni = r1.size() + r2.size() - inter;
         return uni == 0 ? 0.0 : static_cast<double>(inter)/uni;
     }
+
+    double Similarity::adjustedCosine(const std::vector<User>& users, int itemId1, int itemId2) {
+        std::vector<std::pair<double, double>> common;
+
+        for (const auto& user : users) {
+            double r1 = user.getRatingForItem(itemId1);
+            double r2 = user.getRatingForItem(itemId2);
+
+            if (r1 > 0.0 && r2 > 0.0) {
+                double avg = user.getAverageRating();  // уже реализовано
+                common.emplace_back(r1 - avg, r2 - avg);
+            }
+        }
+
+        if (common.empty()) return 0.0;
+
+        double num = 0.0, den1 = 0.0, den2 = 0.0;
+        for (auto& [a, b] : common) {
+            num += a * b;
+            den1 += a * a;
+            den2 += b * b;
+        }
+
+        double den = std::sqrt(den1) * std::sqrt(den2);
+        return (den == 0.0) ? 0.0 : num / den;
+    }
+
+    double Similarity::manhattan(const User& u1, const User& u2) {
+        const auto& r1 = u1.getRatings();
+        const auto& r2 = u2.getRatings();
+        double sum = 0.0;
+        int count = 0;
+        for (auto& [item, rating] : r1) {
+            auto it = r2.find(item);
+            if (it != r2.end()) {
+                sum += std::abs(rating.score - it->second.score);
+                count++;
+            }
+        }
+        return count == 0 ? 0.0 : 1.0 / (1.0 + sum);
+    }
+
 
 }

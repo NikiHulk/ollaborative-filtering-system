@@ -5,6 +5,8 @@ add_library(RecommenderCore
         DataHandler/CSVLoader.cpp
         Algorithms/Similarity.cpp
         Algorithms/Predictor.cpp
+        Algorithms/Recommender.cpp
+        Algorithms/Evaluation.cpp
 )
 
 target_include_directories(RecommenderCore
