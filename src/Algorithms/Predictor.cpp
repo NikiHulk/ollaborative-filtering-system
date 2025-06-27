@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include "../Models/Item.h"
 #include "../Utils/Cache.h"
+#include "../Algorithms/Similarity.h"
+#include <ctime>
 
 namespace recsys {
 
@@ -33,27 +35,43 @@ namespace recsys {
         if (!target) {
             throw std::runtime_error("User not found");
         }
+
         auto key = std::make_pair(userId, itemId);
         if (userItemCache.count(key)) return userItemCache[key];
+
         std::vector<std::pair<double, const User*>> sims;
         sims.reserve(users.size() - 1);
+
         for (auto const& u : users) {
             if (u.getId() == userId) continue;
             double s = getSim(*target, u);
             sims.emplace_back(s, &u);
         }
+
         std::sort(sims.begin(), sims.end(),
                   [](auto &a, auto &b) { return a.first > b.first; });
+
         double num = 0.0, den = 0.0;
         int taken = 0;
+        long now = std::time(nullptr);
+
         for (auto const& [sim, u_ptr] : sims) {
             if (sim <= 0.0) break;
-            double r = u_ptr->getRatingForItem(itemId);
-            if (r <= 0.0) continue;
-            num += sim * r;
-            den += sim;
+
+            const auto& ratings = u_ptr->getRatings();
+            auto it = ratings.find(itemId);
+            if (it == ratings.end()) continue;
+
+            double r = it->second.score;
+            long ts = it->second.timestamp;
+
+            double w = Similarity::decayWeight(ts, now);
+            num += sim * r * w;
+            den += sim * w;
+
             if (++taken >= k) break;
         }
+
         double prediction = den > 0.0 ? num / den : 0.0;
         userItemCache[key] = prediction;
         return prediction;
@@ -64,7 +82,7 @@ namespace recsys {
                                    const std::vector<User>& users,
                                    const std::vector<Item>& items,
                                    int k) {
-        // Найдём все предметы, которые оценил пользователь
+
         const User* user = nullptr;
         for (const auto& u : users) {
             if (u.getId() == userId) {
@@ -73,15 +91,20 @@ namespace recsys {
             }
         }
         if (!user) throw std::runtime_error("User not found");
+
         auto key = std::make_pair(userId, itemId);
         if (itemItemCache.count(key)) return itemItemCache[key];
 
         std::vector<std::pair<double, double>> sims;
+        long now = std::time(nullptr);
+
         for (const auto& [otherItemId, r] : user->getRatings()) {
             if (otherItemId == itemId) continue;
+
             double sim = Similarity::adjustedCosine(users, itemId, otherItemId);
-            if (sim > 0) {
-                sims.emplace_back(sim, r.score);
+            if (sim > 0.0) {
+                double w = Similarity::decayWeight(r.timestamp, now);
+                sims.emplace_back(sim, r.score * w);
             }
         }
 
@@ -90,15 +113,15 @@ namespace recsys {
 
         double num = 0.0, den = 0.0;
         int taken = 0;
-        for (const auto& [sim, score] : sims) {
-            num += sim * score;
+        for (const auto& [sim, weightedScore] : sims) {
+            num += sim * weightedScore;
             den += sim;
             if (++taken >= k) break;
         }
+
         double prediction = (den > 0 ? num / den : 0.0);
         itemItemCache[key] = prediction;
         return prediction;
     }
-
 
 }
