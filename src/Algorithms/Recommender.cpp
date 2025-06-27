@@ -4,6 +4,26 @@
 #include <stdexcept>
 
 namespace recsys {
+/**
+     * @brief Формирует топ-N рекомендаций для пользователя (user-based подход)
+     * 
+     * @param userId ID пользователя, для которого формируются рекомендации
+     * @param users Вектор всех пользователей системы
+     * @param items Вектор всех товаров системы
+     * @param N Количество возвращаемых рекомендаций
+     * @param k Количество соседей для алгоритма предсказания
+     * @param metric Используемая метрика схожести пользователей
+     * @return std::vector<std::pair<int, double>> Вектор рекомендаций в формате:
+     *         (item_id, predicted_rating), отсортированный по убыванию рейтинга
+     * 
+     * @throws std::runtime_error Если пользователь не найден в системе
+     * 
+     * @details Алгоритм:
+     * 1. Исключает товары, уже оцененные пользователем
+     * 2. Предсказывает рейтинг для каждого неоцененного товара
+     * 3. Фильтрует товары с предсказанным рейтингом ≤ 0.0
+     * 4. Возвращает топ-N товаров с наивысшим предсказанным рейтингом
+     */
 
     std::vector<std::pair<int, double>> Recommender::recommendTopN(
         int userId,
@@ -21,6 +41,14 @@ namespace recsys {
             }
         }
         if (!user) throw std::runtime_error("User not found");
+        /**
+     * @brief Возвращает топ-N популярных товаров по количеству оценок
+     * 
+     * @param items Вектор всех товаров системы
+     * @param N Количество возвращаемых товаров
+     * @return std::vector<std::pair<int, int>> Вектор популярных товаров в формате:
+     *         (item_id, rating_count), отсортированный по убыванию количества оценок
+     */
 
         std::vector<std::pair<int, double>> predictions;
 
@@ -46,6 +74,28 @@ namespace recsys {
 
         return predictions;
     }
+/**
+     * @brief Формирует гибридные рекомендации (user-based + item-based)
+     * 
+     * @param userId ID пользователя, для которого формируются рекомендации
+     * @param users Вектор всех пользователей системы
+     * @param items Вектор всех товаров системы
+     * @param N Количество возвращаемых рекомендаций
+     * @param k Количество соседей/товаров для алгоритмов предсказания
+     * @param metric Метрика схожести для user-based подхода
+     * @param alpha Коэффициент взвешивания (0.0 = только item-based, 1.0 = только user-based)
+     * @return std::vector<std::pair<int, double>> Вектор рекомендаций в формате:
+     *         (item_id, combined_rating), отсортированный по убыванию рейтинга
+     * 
+     * @throws std::runtime_error Если пользователь не найден в системе
+     * 
+     * @details Алгоритм:
+     * 1. Для каждого неоцененного товара:
+     *    - Вычисляет user-based предсказание
+     *    - Вычисляет item-based предсказание
+     *    - Комбинирует результаты: combined = alpha*userPred + (1-alpha)*itemPred
+     * 2. Возвращает топ-N товаров с наивысшим комбинированным рейтингом
+     */
 
     std::vector<std::pair<int, int>> Recommender::topPopularItems(const std::vector<Item>& items, int N) {
         std::vector<std::pair<int, int>> result;
@@ -108,6 +158,22 @@ namespace recsys {
 
         return predictions;
     }
+/**
+     * @brief Формирует топ-N рекомендаций (item-based подход)
+     * 
+     * @param userId ID пользователя, для которого формируются рекомендации
+     * @param users Вектор всех пользователей системы
+     * @param items Вектор всех товаров системы
+     * @param N Количество возвращаемых рекомендаций
+     * @return std::vector<std::pair<int, double>> Вектор рекомендаций в формате:
+     *         (item_id, predicted_rating), отсортированный по убыванию рейтинга
+     * 
+     * @throws std::runtime_error Если пользователь не найден в системе
+     * 
+     * @details Алгоритм:
+     * 1. Использует item-based предсказание оценок
+     * 2. Возвращает топ-N товаров с наивысшим предсказанным рейтингом
+     */
 
     std::vector<std::pair<int, double>> Recommender::recommendItemBasedTopN(
         int userId,
