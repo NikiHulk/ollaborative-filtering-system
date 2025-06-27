@@ -184,6 +184,21 @@ namespace recsys {
         }
         return count == 0 ? 0.0 : 1.0 / (1.0 + sum);
     }
+/**
+     * @brief Вычисляет весовой коэффициент с временным затуханием
+     * 
+     * @param timestamp Время оценки (в секундах с эпохи UNIX)
+     * @param now Текущее время (в секундах с эпохи UNIX)
+     * @param halfLife Период полураспада (в секундах)
+     * @return double Весовой коэффициент в диапазоне (0, 1]
+     * 
+     * @details Формула экспоненциального затухания:
+     * \f[
+     * w = e^{-\frac{\text{age}}{\text{halfLife}}}
+     * \f]
+     * где:
+     * - \f$\text{age} = \text{now} - \text{timestamp}\f$
+     */
 
     double Similarity::decayWeight(long timestamp, long now, double halfLife) {
         double age = std::max(0.0, static_cast<double>(now - timestamp));
