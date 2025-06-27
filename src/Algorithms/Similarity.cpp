@@ -3,6 +3,22 @@
 
 
 namespace recsys {
+/**
+     * @brief Вычисляет косинусную схожесть между двумя пользователями
+     * 
+     * @param u1 Первый пользователь
+     * @param u2 Второй пользователь
+     * @return double Значение схожести в диапазоне [0, 1]
+     * 
+     * @details Формула:
+     * \f[
+     * \text{similarity} = \frac{u_1 \cdot u_2}{\|u_1\| \times \|u_2\|}
+     * \f]
+     * где:
+     * - \f$u_1 \cdot u_2\f$ - скалярное произведение оценок общих товаров
+     * - \f$\|u_1\|\f$ и \f$\|u_2\|\f$ - нормы векторов оценок
+     * Возвращает 0.0 если один из векторов нулевой
+     */
 
     double Similarity::cosine(const User& u1, const User& u2) {
         const auto& r1 = u1.getRatings();
@@ -22,6 +38,22 @@ namespace recsys {
         if (norm1 == 0.0 || norm2 == 0.0) return 0.0;
         return dot / (std::sqrt(norm1) * std::sqrt(norm2));
     }
+/**
+     * @brief Вычисляет корреляцию Пирсона между двумя пользователями
+     * 
+     * @param u1 Первый пользователь
+     * @param u2 Второй пользователь
+     * @return double Значение корреляции в диапазоне [-1, 1]
+     * 
+     * @details Особенности:
+     * - Использует только общие товары
+     * - Возвращает 0.0 если нет общих товаров
+     * - Возвращает 1.0 если только один общий товар
+     * - Формула:
+     * \f[
+     * r = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum (x_i - \bar{x})^2 \sum (y_i - \bar{y})^2}}
+     * \f]
+     */
 
     double Similarity::pearson(const User& u1, const User& u2) {
         const auto& r1 = u1.getRatings();
@@ -50,6 +82,22 @@ namespace recsys {
         double den = std::sqrt((sum1Sq - sum1*sum1/n) * (sum2Sq - sum2*sum2/n));
         return (den == 0.0) ? 0.0 : num/den;
     }
+/**
+     * @brief Вычисляет схожесть Жаккара между двумя пользователями
+     * 
+     * @param u1 Первый пользователь
+     * @param u2 Второй пользователь
+     * @return double Коэффициент Жаккара в диапазоне [0, 1]
+     * 
+     * @details Формула:
+     * \f[
+     * J = \frac{|A \cap B|}{|A \cup B|}
+     * \f]
+     * где:
+     * - \f$A\f$ - множество товаров первого пользователя
+     * - \f$B\f$ - множество товаров второго пользователя
+     * Возвращает 0.0 если нет общих товаров
+     */
 
     double Similarity::jaccard(const User& u1, const User& u2) {
         const auto& r1 = u1.getRatings();
@@ -61,6 +109,27 @@ namespace recsys {
         int uni = r1.size() + r2.size() - inter;
         return uni == 0 ? 0.0 : static_cast<double>(inter)/uni;
     }
+/**
+     * @brief Вычисляет скорректированную косинусную схожесть между двумя товарами
+     * 
+     * @param users Вектор всех пользователей системы
+     * @param itemId1 ID первого товара
+     * @param itemId2 ID второго товара
+     * @return double Значение схожести в диапазоне [-1, 1]
+     * 
+     * @details Особенности:
+     * - Учитывает средние оценки пользователей
+     * - Формула:
+     * \f[
+     * \text{sim}(i,j) = \frac{
+     *   \sum\limits_{u \in U} (r_{u,i} - \bar{r_u}) (r_{u,j} - \bar{r_u})
+     * }{
+     *   \sqrt{\sum\limits_{u \in U} (r_{u,i} - \bar{r_u})^2} 
+     *   \sqrt{\sum\limits_{u \in U} (r_{u,j} - \bar{r_u})^2}
+     * }
+     * \f]
+     * Возвращает 0.0 если нет пользователей, оценивших оба товара
+     */
 
     double Similarity::adjustedCosine(const std::vector<User>& users, int itemId1, int itemId2) {
         std::vector<std::pair<double, double>> common;
@@ -87,6 +156,19 @@ namespace recsys {
         double den = std::sqrt(den1) * std::sqrt(den2);
         return (den == 0.0) ? 0.0 : num / den;
     }
+/**
+     * @brief Вычисляет манхэттенское расстояние между пользователями
+     * 
+     * @param u1 Первый пользователь
+     * @param u2 Второй пользователь
+     * @return double Нормализованная схожесть в диапазоне [0, 1]
+     * 
+     * @details Преобразование расстояния в схожесть:
+     * \f[
+     * \text{similarity} = \frac{1}{1 + \text{distance}}
+     * \f]
+     * Возвращает 0.0 если нет общих товаров
+     */
 
     double Similarity::manhattan(const User& u1, const User& u2) {
         const auto& r1 = u1.getRatings();
