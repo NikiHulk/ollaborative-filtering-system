@@ -30,13 +30,13 @@ TEST_CASE("Predictor uses one neighbor") {
     std::vector<User> users;
 
     User u1(1);
-    u1.addRating({1, 101, 0});   // рейтинг 0 — неизвестен
-    u1.addRating({1, 102, 4});
+    u1.addRating({1, 101, 0,0});   // рейтинг 0 — неизвестен
+    u1.addRating({1, 102, 4,0});
     users.push_back(u1);
 
     User u2(2);
-    u2.addRating({2, 101, 5});
-    u2.addRating({2, 102, 4});
+    u2.addRating({2, 101, 5,0});
+    u2.addRating({2, 102, 4,0});
     users.push_back(u2);
 
     double predicted = Predictor::predict(1, 101, users, 1);
@@ -53,13 +53,13 @@ TEST_CASE("Predictor uses Pearson similarity") {
     std::vector<User> users;
 
     User u1(1);
-    u1.addRating({1, 101, 2});
-    u1.addRating({1, 102, 4});
+    u1.addRating({1, 101, 2,0});
+    u1.addRating({1, 102, 4,0});
     users.push_back(u1);
 
     User u2(2);
-    u2.addRating({2, 101, 4});
-    u2.addRating({2, 102, 6});
+    u2.addRating({2, 101, 4,0});
+    u2.addRating({2, 102, 6,0});
     users.push_back(u2);
 
     double pred = Predictor::predict(1, 101, users, 1, Predictor::Metric::Pearson);

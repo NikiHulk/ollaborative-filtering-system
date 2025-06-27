@@ -22,6 +22,7 @@ public:
      * @param s Числовая оценка (обычно от 0 до 5).
      * @param t Временная метка (timestamp), когда была выставлена оценка.
      */
+    Rating() = default;
     Rating(int u, int i, double s, std::time_t t);
 
     int userId;     ///< ID пользователя

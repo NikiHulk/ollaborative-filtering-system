@@ -1,53 +1,38 @@
-/**
-* @file Item.h
- * @brief Класс модели Item (товар), содержащий список оценок от пользователей.
- */
+#include "Item.h"
+#include <stdexcept>
 
-#pragma once
+namespace recsys {
 
-#include <vector>
-#include "Rating.h"
+    Item::Item(int id) : id_(id) {}
 
-/**
- * @class Item
- * @brief Представляет товар, который может быть оценён пользователями.
- *
- * Хранит идентификатор и список оценок от разных пользователей.
- */
-class Item {
-public:
-    /**
-     * @brief Конструктор по идентификатору.
-     * @param id Уникальный идентификатор товара.
-     */
-    Item(int id);
+    void Item::addRating(const Rating& rating) {
+        if (rating.itemId != id_) {
+            throw std::invalid_argument("Rating item ID does not match this item");
+        }
 
-    /**
-     * @brief Добавляет новую оценку к товару.
-     * @param rating Объект оценки типа Rating.
-     * @throw std::invalid_argument Если значение оценки вне диапазона [0; 5].
-     */
-    void addRating(const Rating& rating);
+        if (rating.score < 0.0 || rating.score > 5.0) {
+            throw std::invalid_argument("Rating score must be in [0, 5]");
+        }
 
-    /**
-     * @brief Получает идентификатор товара.
-     * @return Целочисленный ID.
-     */
-    int getId() const;
+        ratings_.push_back(rating);
+    }
 
-    /**
-     * @brief Получает количество оценок для этого товара.
-     * @return Количество оценок (размер вектора).
-     */
-    int getRatingCount() const;
+    double Item::getAverageRating() const {
+        if (ratings_.empty()) return 0.0;
 
-    /**
-     * @brief Возвращает среднюю оценку по всем полученным рейтингам.
-     * @return Среднее арифметическое значений оценок. 0.0 если оценок нет.
-     */
-    double getAverageRating() const;
+        double sum = 0.0;
+        for (const auto& r : ratings_) {
+            sum += r.score;
+        }
+        return sum / ratings_.size();
+    }
 
-private:
-    int id_;  ///< Идентификатор товара.
-    std::vector<Rating> ratings_;  ///< Список оценок, оставленных пользователями.
-};
+    int Item::getId() const {
+        return id_;
+    }
+
+    int Item::getRatingCount() const {
+        return static_cast<int>(ratings_.size());
+    }
+
+} // namespace recsys

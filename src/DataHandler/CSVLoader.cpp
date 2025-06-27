@@ -1,8 +1,3 @@
-/**
- * @file CSVLoader.cpp
- * @brief Загрузка данных из CSV-файла в память (пользователи, товары, оценки).
- */
-
 #include "CSVLoader.h"
 #include <fstream>
 #include <sstream>
@@ -67,26 +62,22 @@ void CSVLoader::load(const std::string& filename,
             double rating = std::stod(tokens[2]);       ///< Оценка
             long timestamp = std::time(nullptr);        ///< Временная метка
 
-            // Если в CSV есть четвертая колонка — используем её как timestamp
             if (tokens.size() >= 4 && !tokens[3].empty()) {
                 timestamp = std::stol(tokens[3]);
             }
 
-            // Добавление пользователя, если новый
             if (!userIndex.count(userId)) {
                 users.emplace_back(userId);
                 userIndex[userId] = users.size() - 1;
                 if (verbose) std::cout << "Created user #" << userId << "\n";
             }
 
-            // Добавление товара, если новый
             if (!itemIndex.count(itemId)) {
                 items.emplace_back(itemId);
                 itemIndex[itemId] = items.size() - 1;
                 if (verbose) std::cout << "Created item #" << itemId << "\n";
             }
 
-            // Добавление оценки
             auto& u = users[userIndex[userId]];
             auto& it = items[itemIndex[itemId]];
             Rating r(userId, itemId, rating, timestamp);
@@ -113,4 +104,4 @@ void CSVLoader::load(const std::string& filename,
     }
 }
 
-}
+} // namespace recsys

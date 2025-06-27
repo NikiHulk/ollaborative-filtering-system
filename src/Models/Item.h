@@ -8,47 +8,26 @@
 #include <vector>
 #include "Rating.h"
 
-/**
- * @class Item
- * @brief Класс, описывающий товар (элемент), который может быть оценен пользователями.
- *
- * Каждый товар имеет уникальный идентификатор и список оценок (Rating).
- * Предоставляет методы для добавления оценок и получения статистики.
- */
-class Item {
-public:
-    /**
-     * @brief Конструктор, инициализирующий товар с заданным ID.
-     * @param id Уникальный идентификатор товара.
-     */
-    explicit Item(int id);
+namespace recsys {  // ✅ Добавить пространство имён
 
     /**
-     * @brief Добавляет оценку пользователем к товару.
-     * @param rating Оценка типа Rating (содержит userId, itemId, значение и время).
-     * @throw std::invalid_argument Если значение оценки выходит за допустимый диапазон [0, 5].
+     * @class Item
+     * @brief Класс, описывающий товар (элемент), который может быть оценен пользователями.
+     *
+     * Каждый товар имеет уникальный идентификатор и список оценок (Rating).
+     * Предоставляет методы для добавления оценок и получения статистики.
      */
-    void addRating(const Rating& rating);
+    class Item {
+    public:
+        explicit Item(int id);
+        void addRating(const Rating& rating);
+        double getAverageRating() const;
+        int getId() const;
+        int getRatingCount() const;
 
-    /**
-     * @brief Вычисляет и возвращает среднюю оценку товара.
-     * @return Средняя оценка по всем выставленным значениям. Если оценок нет — 0.0.
-     */
-    double getAverageRating() const;
+    private:
+        int id_;  ///< Уникальный идентификатор товара.
+        std::vector<Rating> ratings_; ///< Список всех оценок, оставленных пользователями.
+    };
 
-    /**
-     * @brief Возвращает идентификатор товара.
-     * @return Целочисленный ID.
-     */
-    int getId() const;
-
-    /**
-     * @brief Возвращает количество выставленных оценок.
-     * @return Количество оценок, ассоциированных с товаром.
-     */
-    int getRatingCount() const;
-
-private:
-    int id_;  ///< Уникальный идентификатор товара.
-    std::vector<Rating> ratings_; ///< Список всех оценок, оставленных пользователями.
-};
+} // namespace recsys

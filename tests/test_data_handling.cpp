@@ -17,6 +17,8 @@ using namespace Catch;
 #include <Models/User.h>
 #include <Models/Item.h>
 
+using namespace recsys;
+
 /**
  * @brief Группа тестов: Загрузка данных из CSV
  */
