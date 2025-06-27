@@ -103,9 +103,9 @@ namespace recsys {
         return count == 0 ? 0.0 : 1.0 / (1.0 + sum);
     }
 
-        double Similarity::decayWeight(long timestamp, long now, double lambda) {
-        long delta = now - timestamp;
-        return std::exp(-lambda * delta / 86400.0); // перевод секунд в дни
+    double Similarity::decayWeight(long timestamp, long now, double halfLife) {
+        double age = std::max(0.0, static_cast<double>(now - timestamp));
+        return std::exp(-age / halfLife);
     }
 
 
